@@ -1,11 +1,14 @@
 import socket, threading 
 
 HOST = '127.0.0.1'      # ip do server
-PORT = 1000             # porta
+PORT = 6000             # porta
+SERVER_PORT = 7000
 global id;              # id das operações realizadas pelo usuario
 saldo = 0
 
 def main():
+    t = threading.Thread(target = threadOfReceived) # Define a função threadOfReceived como thread
+    t.start() # Inicia a Thread acima
     menuInteration() # Menu de Interação
 
 def menuInteration():
@@ -35,6 +38,35 @@ def sendTo_Function(clientRequest): # função para enviar a requisição do usu
         tcp.sendall(clientRequest) # envia a requisição do usuario para o servidor
     
     tcp.close # fecha a conexao tcp
+
+
+def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
+    print("Iniciando Thread")
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # inicia uma conexao tcp
+    s.bind((HOST, SERVER_PORT)) # define o destino da conexao
+    s.listen() # começa a escutar no destino definido
+    while True:
+        con, port = s.accept() # define a conexao e atribui a variavel conn, quando o servidor aceitar
+
+        msg = con.recv(1024) # pega os dados recebidos e atribui a variavel msg
+        if not msg: break # se msg estiver vazio para todo o processo
+        data = msg.decode().split('|') # decodifica a mensagem de bytes para string e separa por |, transformando em uma lista de string
+        id = data[0] # atribui o primeiro valor da lista a variavel id
+        operation = data[1] # atribui o segundo valor da lista a variavel operation
+        valor = int(data[2]) # atribui o terceiro valor da lista a variavel valor
+        saldo = valor
+        print(data)
+    
+        if (operation == "OK"):
+            print('OK: Operação realizada, id ',str(id) + ' seu novo saldo é de ', str(saldo) )
+            print('fechou conexao')
+            s.close() # fexa a conexao com o servidor
+        elif (operation == "ERRO"):
+            print('ERRO: Operação nao realizada, seu saldo continua ', saldo)
+            print('fechou conexao')
+            s.close() # fexa a conexao com o servidor
+
+            
 
 if __name__ == "__main__":
     main()
