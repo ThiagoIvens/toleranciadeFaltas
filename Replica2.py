@@ -13,7 +13,7 @@ def main():
 def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
     print("Iniciando Thread")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # inicia uma conexao tcp
-    s.bind((HOST, PORT)) # define o destino da conexao
+    s.bind((HOST, PORT)) # define a porta a ser ouvida
     s.listen() # começa a escutar no destino definido
     while True:
         con, port = s.accept() # define a conexao e atribui a variavel conn, quando o servidor aceitar
