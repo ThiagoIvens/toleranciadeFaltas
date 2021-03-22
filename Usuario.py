@@ -40,15 +40,19 @@ def menuInteration():
 def sendTo_Function(clientRequest): # função para enviar a requisição do usuario para o servidor 
      
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp: # Cria uma conexao do tipo tcp
-        tcp.connect((HOST, PORT)) # conecta a conexao criada ao destino 
+        testarConn(tcp, SERVER_PORT) # conecta a conexao criada ao destino 
         tcp.sendall(clientRequest) # envia a requisição do usuario para o servidor
-    
-    tcp.close # fecha a conexao tcp
+
+def testarConn(conexao, port): 
+    try:
+        return conexao.connect((HOST, port))
+    except:
+        testarConn(conexao, PORT)
 
 def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
     print("Iniciando Thread")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # inicia uma conexao tcp
-    s.bind((HOST, SERVER_PORT)) # define o destino da conexao
+    s.bind((HOST, PORT)) # define o destino da conexao
     s.listen() # começa a escutar no destino definido
     while True:
         con, port = s.accept() # define a conexao e atribui a variavel conn, quando o servidor aceitar
@@ -65,13 +69,13 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
                     print('OK: Operação realizada, id ', str(id) + ' seu novo saldo é de ', str(valor) )
                     saldo.total = valor
                     print('Fechando conexao...')
-                    s.close() # fexa a conexao com o servidor
+                    con.close() # fexa a conexao com o servidor
                 elif (operation == "ERRO"):
-                    print('ERRO: Operação nao realizada, seu saldo continua ', saldo)
+                    print('ERRO: Operação nao realizada, seu saldo continua ', saldo.total)
 
         finally:
             print('Fechando conexao...')
-            s.close() # fexa a conexao com o servidor   
+            con.close() # fexa a conexao com o servidor   
 
 if __name__ == "__main__":
     main()

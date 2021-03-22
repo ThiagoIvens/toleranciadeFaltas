@@ -18,9 +18,10 @@ saldo = Saldo(0)
 confirmados = Confirmados(0)
 
 def comparar(): # classe para comparar os valores
-    if(len(listValues) == 4): # se o tamanho da lista for igual a 5
-        for i in len(listValues): # para i em tamanho da lista
-            if(listValues[0] != listValues[i]): # se o valor na listValues de indice 0 é igual ao o objeto da listaValues de indice i
+    if(len(listValues) == 4): # se o tamanho da lista for igual a 4
+        print(len(listValues))
+        for value in listValues: # para i em tamanho da lista
+            if(listValues[0] != value): # se o valor na listValues de indice 0 é igual ao o objeto da listaValues de indice i
                 return False 
         return True
         
@@ -53,6 +54,7 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
                 valor = int(data[2]) # atribui o quarto valor a variavel valor
 
                 if operation == "CREDITO": # se operation for igual a CREDITO
+                    print("selecionou credito")
                     saldo.total += valor # soma o valor passado a saldo
                 elif operation == "DEBITO": # se operation for igual a DEBITO
                     saldo.total -= valor # subtrai o valor passado a saldo
@@ -72,14 +74,15 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
                         msg = str(id)+'|ERRO|'+str(saldo.total) # define a mensagem a ser enviada
                         enviaMsg(SERVER_PORT, msg) # envia a mensagem para o servidor
                         confirmados.contador = 0 # zera o contador
-                else:
+                    break
+                elif(confirmados.contador != 4):
                     contadorLista = 0 # atribui uma variavel com atributo = 0
                     if(contadorLista < 3): # se contador for menor que 3
                         for replica in listReplicas: # para cada replica em listReplicas faz
                             msg = data[0] + "|COMPARE|" + str(saldo.total)
                             enviaMsg(replica, msg) # envia a mensagem contida na variavel msg para a replica
         finally:
-            s.close() # fecha a conexao com o servidor
+            con.close() # fecha a conexao com o servidor
 
 def main(): # classe para iniciar tudo
     t = threading.Thread(target = threadOfReceived) # Define a função threadOfReceived como thread

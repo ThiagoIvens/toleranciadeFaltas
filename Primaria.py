@@ -34,7 +34,7 @@ def main():
 def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
     print("Iniciando PRIMARIA")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # inicia uma conexao tcp
-    s.bind((HOST, USER_PORT)) # define o destino da conexao
+    s.bind((HOST, PORT)) # define o destino da conexao
     s.listen() # começa a escutar no destino definido
     while True:
         con, port = s.accept() # define a conexao e atribui a variavel conn, quando o servidor aceitar
@@ -65,24 +65,26 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
                 elif (operation == "OK"):
                     # faz o codigo de OK
                     confirmados.contador += 1
-                    print("\nCOMPARADOS ATE O MOMENTO: ",confirmados.contador)
+                    print("\nCOMPARADOS ATE O MOMENTO: ", confirmados.contador)
                     if confirmados.contador == 4:
                         print('Todas replicas retornaram OK')
                         msg = str(id) + "|OK|" + str(saldo.total)
                         enviaMsg(USER_PORT, msg)
                         confirmados.contador = 0    
                         print('Fechando conexao....')
-                        s.close() # fexa a conexao com o servidor
+                        con.close() # fexa a conexao com o servidor
+                        break
 
                 elif (operation == "ERRO"):
                     print('ERRO')
-                    msg = str(id) + '|ERRO|' + str(saldo._saldo)
+                    msg = str(id) + '|ERRO|' + str(saldo.total)
                     enviaMsg(USER_PORT, msg)
                     confirmados.contador = 0    
                     print('Fechando conexao....') 
-                    s.close() # fexa a conexao com o servidor
+                    con.close() # fexa a conexao com o servidor
+                    break
         finally:
-            s.close()
+            con.close()
 
 if __name__ == "__main__":
     main()
