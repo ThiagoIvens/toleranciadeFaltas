@@ -16,10 +16,10 @@ saldo = Saldo(0)
 def main():
     t = threading.Thread(target = threadOfReceived) # Define a função threadOfReceived como thread
     t.start() # Inicia a Thread acima
-    menu()
-
-def menu():
     id = 1
+    menu(id)
+
+def menu(id):
     opt = input("Qual operação desejada?\n[1] Crédito\n[2] Débito\n") #mostra o menu e grava a opção em opt
     if opt == '1': # verifica se opt é igual a '1', ou seja, CREDITO
         valor= int(input("Digite o valor: ")) # pega o que o usuario digitar e atribui a variavel valor
@@ -36,7 +36,7 @@ def menu():
 
 def sendTo_Function(clientRequest): # função para enviar a requisição do usuario para o servidor 
      
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp: # Cria uma conexao do tipo tcp
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as tcp:# Cria uma conexao do tipo tcp
         testarConn(tcp, SERVER_PORT) # conecta a conexao criada ao destino 
         tcp.sendall(clientRequest) # envia a requisição do usuario para o servidor
 
@@ -71,7 +71,8 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
         finally:
             print('Fechando conexao...')
             con.close() # fexa a conexao com o servidor
-            menu()
+            id = int(id)+1
+            menu(id)
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ saldo = Saldo(0)
 confirmados = Confirmados(0)
 
 def comparar(): # classe para comparar os valores
-    if(len(listValues) == 3): # se o tamanho da lista for igual a 4
+    if(len(listValues) == 4): # se o tamanho da lista for igual a 4
         print(len(listValues))
         for value in listValues: # para i em tamanho da lista
             if(listValues[0] != value): # se o valor na listValues de indice 0 é igual ao o objeto da listaValues de indice i
@@ -37,9 +37,9 @@ def enviaMsg(port, data): # função para enviar o valor data para a porta infor
         conexao.sendall(data.encode('utf-8')) # envia a para conexao a mensagem em bytes
         print(data + " enviada para a Réplica de porta: ", port)
 
-def compare(data):
+def compare(data, valor2):
     for replica in listReplicas: # para cada replica em listReplicas faz
-            msg = data + "|COMPARE|" + str(saldo.total)
+            msg = data + "|COMPARE|" + str(valor2)
             enviaMsg(replica, msg) # envia a mensagem contida na variavel msg para a replica 
         
 def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
@@ -56,22 +56,49 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
                 id = data[0] # atribui o primeiro valor a variavel id
                 operation = data[1] # atribui o segundo valor a variavel operation1
                 valor = int(data[2]) # atribui o quarto valor a variavel valor
-
-                if operation == "CREDITO": # se operation for igual a CREDITO
-                    saldo.total += valor # soma o valor passado a saldo
-                    compare(data[0])
-                elif operation == "DEBITO": # se operation for igual a DEBITO
-                    saldo.total -= valor # subtrai o valor passado a saldo
-                    compare(data[0])
-                elif operation == "COMPARE":
-                    if confirmados.contador <= 3:
-                        listValues.append(valor)
-                        confirmados.contador += 1
-                        print("\nCOMPARADOS ATE O MOMENTO: ",confirmados.contador)
                 
-                if confirmados.contador == 3 or len(listValues) == 3: # se o contador for igual 5 ou o tamanho da listValues for igual a 5
+                valor2 = saldo.total
+                if(id == '3'):
+                    if operation == "CREDITO": # se operation for igual a CREDITO
+                        valor2 -= valor # soma o valor passado a saldo
+                        listValues.append(valor2)
+                        compare(data[0], valor2)
+                    elif operation == "DEBITO": # se operation for igual a DEBITO
+                        valor2 += valor # subtrai o valor passado a saldo
+                        listValues.append(valor2)
+                        compare(data[0], valor2)
+                    elif operation == "COMPARE":
+                        if confirmados.contador <= 3:
+                            listValues.append(valor)
+                            confirmados.contador += 1
+                            print("\nCOMPARADOS ATE O MOMENTO: ",confirmados.contador)
+                    elif operation == "SALDO":
+                        saldo.total = valor
+                    listValues.append(valor)
+                else:
+                    valor2 = saldo.total
+                    if operation == "CREDITO": # se operation for igual a CREDITO
+                        valor2 += valor # soma o valor passado a saldo
+                        listValues.append(valor2)
+                        compare(data[0], valor2)
+                    elif operation == "DEBITO": # se operation for igual a DEBITO
+                        valor2 -= valor # subtrai o valor passado a saldo
+                        listValues.append(valor2)
+                        compare(data[0], valor2)
+                    elif operation == "COMPARE":
+                        if confirmados.contador <= 3:
+                            listValues.append(valor)
+                            confirmados.contador += 1
+                            print("\nCOMPARADOS ATE O MOMENTO: ",confirmados.contador)
+                    elif operation == "SALDO":
+                        saldo.total = valor
+                    
+                
+                if confirmados.contador == 3 or len(listValues) == 4: # se o contador for igual 5 ou o tamanho da listValues for igual a 5
                     if comparar(): # executa a funçao comparar
                         print('Todas replicas retornaram OK!')
+                        saldo.total = listValues[2]
+                        print(saldo.total)
                         msg = str(id)+'|OK|'+str(saldo.total)  # define a mensagem a ser enviada
                         print(listValues)
                         enviaMsg(SERVER_PORT, msg) # envia a mensagem para o servidor
@@ -79,7 +106,10 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
                         listValues.clear()
                     else:
                         print('Deu ERRO no calculo!')
+                        saldo.total = listValues[0]
                         msg = str(id)+'|ERRO|'+str(saldo.total) # define a mensagem a ser enviada
+                        saldo.total = listValues[2]
+                        print( "saldo erro ", saldo.total)
                         print(listValues)
                         enviaMsg(SERVER_PORT, msg) # envia a mensagem para o servidor
                         confirmados.contador = 0 # zera o contador

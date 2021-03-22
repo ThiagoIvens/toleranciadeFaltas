@@ -48,16 +48,18 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
                 valor = int(data[2]) # atribui o terceiro valor da lista a variavel valor
                 print(data)
 
+                valor2 = saldo.total
                 if operation == 'CREDITO':
-                    saldo.total += valor
-                    print('Cliente requisitou Crédito\nNovo saldo experado é', saldo.total, ', enviando para comparação...')
+                    valor2 += valor
+                    print('Cliente requisitou Crédito\nNovo saldo experado é', valor2, ', enviando para comparação...')
                     msg = str(id)+'|CREDITO|'+str(valor)
+                    print(msg)
                     for replica in listReplicas:
                         enviaMsg(replica, msg)
 
                 elif (operation == "DEBITO"):
-                    saldo.total -= valor
-                    print('Cliente requisitou Débito\nNovo saldo é de', saldo.total, ', enviando para comparação...')
+                    valor2 -= valor
+                    print('Cliente requisitou Débito\nNovo saldo experado é de ', valor2 , ', enviando para comparação...')
                     msg = str(id)+'|DEBITO|'+str(valor)
                     for replica in listReplicas:
                         enviaMsg(replica, msg)
@@ -68,10 +70,15 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
                     print("\nCOMPARADOS ATE O MOMENTO: ", confirmados.contador)
                     if confirmados.contador == 4:
                         print('Todas replicas retornaram OK')
+                        saldo.total = valor
                         msg = str(id) + "|OK|" + str(saldo.total)
                         enviaMsg(USER_PORT, msg)
-                        confirmados.contador = 0    
+                        confirmados.contador = 0   
                         print('Fechando conexao....')
+                        msg = str(id) + '|SALDO|'+ str(saldo.total)
+                    
+                        for replica in listReplicas:
+                            enviaMsg(replica, msg)
                         con.close() # fexa a conexao com o servidor
                         break
 
@@ -79,8 +86,12 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
                     print('ERRO')
                     msg = str(id) + '|ERRO|' + str(saldo.total)
                     enviaMsg(USER_PORT, msg)
-                    confirmados.contador = 0    
-                    print('Fechando conexao....') 
+                    confirmados.contador = 0 
+                    print('Fechando conexao....')
+                    msg = str(id) + '|SALDO|'+ str(saldo.total)
+                
+                    for replica in listReplicas:
+                        enviaMsg(replica, msg) 
                     con.close() # fexa a conexao com o servidor
                     break
         finally:
