@@ -16,9 +16,11 @@ saldo = Saldo(0)
 def main():
     t = threading.Thread(target = threadOfReceived) # Define a função threadOfReceived como thread
     t.start() # Inicia a Thread acima
+    menu()
+
+def menu():
     id = 1
     opt = input("Qual operação desejada?\n[1] Crédito\n[2] Débito\n") #mostra o menu e grava a opção em opt
-
     if opt == '1': # verifica se opt é igual a '1', ou seja, CREDITO
         valor= int(input("Digite o valor: ")) # pega o que o usuario digitar e atribui a variavel valor
         clientRequest = str(id) +"|CREDITO|"+str(valor) # grava a requisição do usuario com id, op, valor da requisição
@@ -69,6 +71,8 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
         finally:
             print('Fechando conexao...')
             con.close() # fexa a conexao com o servidor
+            menu()
+
 
 if __name__ == "__main__":
     main()
