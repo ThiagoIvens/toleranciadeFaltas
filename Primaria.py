@@ -7,14 +7,14 @@ listReplicas = [1000, 2000, 3000, 4000]
 
 class Saldo(object):
     def __init__(self, valor):
-        self._saldo = valor
+        self.total = valor
 
 class Confirmado(object):
     def __init__(self, valor):
-        self._confirmado = valor
+        self.contador = valor
 
 saldo = Saldo(0)
-contador = Confirmado(0)
+confirmados = Confirmado(0)
 
 def testarConn(conexao, port): 
     try:
@@ -32,7 +32,7 @@ def main():
     t.start() # Inicia a Thread acima
 
 def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
-    print("Iniciando Thread")
+    print("Iniciando PRIMARIA")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # inicia uma conexao tcp
     s.bind((HOST, USER_PORT)) # define o destino da conexao
     s.listen() # começa a escutar no destino definido
@@ -49,33 +49,38 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
                 print(data)
 
                 if operation == 'CREDITO':
-                    saldo._saldo += valor
-                    print('Cliente requisitou Crédito\nNovo saldo experado é', saldo._saldo, ', enviando para comparação...')
-                    msg = str(id)+'|COMPARE|CREDITO|'+str(valor)
+                    saldo.total += valor
+                    print('Cliente requisitou Crédito\nNovo saldo experado é', saldo.total, ', enviando para comparação...')
+                    msg = str(id)+'|CREDITO|'+str(valor)
                     for replica in listReplicas:
                         enviaMsg(replica, msg)
 
                 elif (operation == "DEBITO"):
-                    saldo._saldo -= valor
-                    print('Cliente requisitou Débito\nNovo saldo é de', saldo._saldo, ', enviando para comparação...')
-                    msg = str(id)+'|COMPARE|DEBITO|'+str(valor)
+                    saldo.total -= valor
+                    print('Cliente requisitou Débito\nNovo saldo é de', saldo.total, ', enviando para comparação...')
+                    msg = str(id)+'|DEBITO|'+str(valor)
                     for replica in listReplicas:
                         enviaMsg(replica, msg)
 
                 elif (operation == "OK"):
                     # faz o codigo de OK
-                    contador._confirmado += 1
-                    if contador._confirmado == 4:
+                    confirmados.contador += 1
+                    print("\nCOMPARADOS ATE O MOMENTO: ",confirmados.contador)
+                    if confirmados.contador == 4:
                         print('Todas replicas retornaram OK')
+                        msg = str(id) + "|OK|" + str(saldo.total)
                         enviaMsg(USER_PORT, msg)
-                        contador._confirmado = 0    
-                
-                    print('fechou conexao')
-                    s.close() # fexa a conexao com o servidor
+                        confirmados.contador = 0    
+                        print('Fechando conexao....')
+                        s.close() # fexa a conexao com o servidor
+
                 elif (operation == "ERRO"):
                     print('ERRO')
-                    msg = str(id)+'|ERRO|'+str(saldo._saldo)
+                    msg = str(id) + '|ERRO|' + str(saldo._saldo)
                     enviaMsg(USER_PORT, msg)
+                    confirmados.contador = 0    
+                    print('Fechando conexao....') 
+                    s.close() # fexa a conexao com o servidor
         finally:
             s.close()
 
