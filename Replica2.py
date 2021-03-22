@@ -42,10 +42,12 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # inicia uma conexao tcp
     s.bind((HOST, PORT)) # define o destino da conexao
     s.listen() # começa a escutar no destino definido
-    while True: # loop
+
+    i = 0
+    while i < 5: # loop
         con, port = s.accept() # aceita a conexao e atribui a variavel conn, e atribui a porta e host do conectado a port
         try: # tenta
-            while True: # loop 
+            while True : # loop 
                 msg = con.recv(1024) # recebe os dados de con e atribui a msg
                 if not msg: break # se nao tem nada em msg, para o while
                 data = msg.decode().split('|') # transforma a mensagem recebida de byte para string e separa por |
@@ -54,6 +56,7 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
                 valor = int(data[2]) # atribui o quarto valor a variavel valor
 
                 if operation == "CREDITO": # se operation for igual a CREDITO
+                    print("selecionou credito")
                     saldo.total += valor # soma o valor passado a saldo
                 elif operation == "DEBITO": # se operation for igual a DEBITO
                     saldo.total -= valor # subtrai o valor passado a saldo
@@ -80,8 +83,10 @@ def threadOfReceived(): # função para ficar a espera da mensagem do sevidor
                         for replica in listReplicas: # para cada replica em listReplicas faz
                             msg = data[0] + "|COMPARE|" + str(saldo.total)
                             enviaMsg(replica, msg) # envia a mensagem contida na variavel msg para a replica
+                
         finally:
             con.close() # fecha a conexao com o servidor
+        i += 1
 
 def main(): # classe para iniciar tudo
     t = threading.Thread(target = threadOfReceived) # Define a função threadOfReceived como thread
